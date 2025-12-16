@@ -28,9 +28,6 @@ export const ProfilePage: React.FC = () => {
         <Descriptions title="Información Personal" bordered>
           <Descriptions.Item label="Nombre">{user.nombre}</Descriptions.Item>
           <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
-          <Descriptions.Item label="Rol" span={3}>
-            {user.rol === 'admin' ? 'Administrador' : 'Vendedor'}
-          </Descriptions.Item>
           <Descriptions.Item label="Teléfono" span={3}>
             {user.telefono || 'No especificado'}
           </Descriptions.Item>

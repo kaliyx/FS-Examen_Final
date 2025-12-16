@@ -1,6 +1,6 @@
 // Autenticación
 export interface LoginRequest {
-  username: string
+  email: string
   password: string
 }
 
@@ -22,7 +22,6 @@ export interface User {
   id: number
   nombre: string
   email: string
-  rol: 'admin' | 'vendedor'
   telefono?: string
   direccion?: string
 }

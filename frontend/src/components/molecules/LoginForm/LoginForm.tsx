@@ -4,7 +4,7 @@ import { Input as AntInputPassword } from 'antd'
 import { Button, Input } from '@/components/atoms'
 
 interface LoginFormProps extends Omit<FormProps, 'children'> {
-  onSubmit: (values: { username: string; password: string }) => void
+  onSubmit: (values: { email: string; password: string }) => void
   loading?: boolean
 }
 
@@ -15,7 +15,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 }) => {
   const [form] = Form.useForm()
 
-  const handleSubmit = async (values: { username: string; password: string }) => {
+  const handleSubmit = async (values: { email: string; password: string }) => {
     onSubmit(values)
   }
 
@@ -27,14 +27,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {...props}
     >
       <Form.Item
-        name="username"
-        label="Nombre de usuario"
+        name="email"
+        label="Correo electrónico"
         rules={[
-          { required: true, message: 'Por favor ingresa tu nombre de usuario' },
-          { min: 3, message: 'El nombre de usuario debe tener al menos 3 caracteres' }
+          { required: true, message: 'Por favor ingresa tu correo electrónico' },
+          { type: 'email', message: 'Por favor ingresa un correo válido' }
         ]}
       >
-        <Input placeholder="tu_usuario" />
+        <Input placeholder="tu@email.com" type="email" />
       </Form.Item>
 
       <Form.Item
