@@ -7,13 +7,16 @@ export const useProducts = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchProducts = useCallback(async (page = 1, limit = 20) => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await productService.getAll(page, limit)
+      console.log('Cargando productos...')
+      const data = await productService.getAll()
+      console.log('Productos cargados:', data)
       setProducts(data)
     } catch (err) {
+      console.error('Error al cargar productos:', err)
       const message = err instanceof Error ? err.message : 'Error al cargar productos'
       setError(message)
     } finally {

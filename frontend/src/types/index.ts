@@ -32,21 +32,16 @@ export interface Product {
   nombre: string
   descripcion: string
   precio: number
-  stock: number
-  categoria: 'hombres' | 'mujeres' | 'niños' | 'accesorios'
+  categoria: string
   imagen?: string
-  estado: 'activo' | 'inactivo'
-  vendedor_id: number
-  createdAt: string
-  updatedAt: string
+  usuario_id: number
 }
 
 export interface CreateProducto {
   nombre: string
   descripcion: string
   precio: number
-  stock: number
-  categoria: 'hombres' | 'mujeres' | 'niños' | 'accesorios'
+  categoria: string
   imagen?: string
 }
 
@@ -54,10 +49,8 @@ export interface UpdateProducto {
   nombre?: string
   descripcion?: string
   precio?: number
-  stock?: number
-  categoria?: 'hombres' | 'mujeres' | 'niños' | 'accesorios'
+  categoria?: string
   imagen?: string
-  estado?: 'activo' | 'inactivo'
 }
 
 // Carrito

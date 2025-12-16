@@ -1,29 +1,61 @@
-import React from 'react'
-import { Row, Col, message, Empty } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Row, Col, message, Empty, Card, Button, Input, Select } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
 import { MainLayout } from '@/components/templates'
-import { ProductFilters } from '@/components/organisms'
-import { ProductCard } from '@/components/molecules'
 import { Loader } from '@/components/atoms'
-import { useProducts, useCart } from '@/hooks'
+import axiosInstance from '@/services/axios'
+import type { Product } from '@/types'
 
 export const ProductsPage: React.FC = () => {
-  const { products, loading, error, searchProducts, getByCategory } = useProducts()
-  const { addToCart } = useCart()
+  const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  const handleSearch = (query: string) => {
-    if (query.trim()) {
-      searchProducts(query)
+  // Cargar productos
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await axiosInstance.get<Product[]>('/productos')
+        setProducts(response.data)
+        setFilteredProducts(response.data)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Error al cargar productos'
+        setError(message)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+    fetchProducts()
+  }, [])
 
-  const handleCategoryChange = (category: string) => {
-    if (category) {
-      getByCategory(category)
+  // Filtrar productos cuando cambian búsqueda o categoría
+  useEffect(() => {
+    let filtered = products
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(p => 
+        p.nombre.toLowerCase().includes(query) || 
+        p.descripcion.toLowerCase().includes(query)
+      )
     }
-  }
 
-  const handleAddToCart = (product: any) => {
-    addToCart(product, 1)
+    if (selectedCategory) {
+      filtered = filtered.filter(p => p.categoria === selectedCategory)
+    }
+
+    setFilteredProducts(filtered)
+  }, [searchQuery, selectedCategory, products])
+
+  // Obtener categorías únicas
+  const categories = Array.from(new Set(products.map(p => p.categoria)))
+
+  const handleAddToCart = (product: Product) => {
     message.success(`${product.nombre} agregado al carrito`)
   }
 
@@ -31,7 +63,8 @@ export const ProductsPage: React.FC = () => {
     return (
       <MainLayout>
         <div style={{ color: 'red', textAlign: 'center', padding: '60px' }}>
-          Error: {error}
+          <h2>Error al cargar productos</h2>
+          <p>{error}</p>
         </div>
       </MainLayout>
     )
@@ -39,31 +72,84 @@ export const ProductsPage: React.FC = () => {
 
   return (
     <MainLayout>
-      <h1>Nuestros Productos</h1>
-      
-      <ProductFilters 
-        onSearch={handleSearch}
-        onCategoryChange={handleCategoryChange}
-      />
+      <div style={{ padding: '20px 0' }}>
+        <h1>Nuestros Productos</h1>
 
-      <div style={{ position: 'relative', minHeight: '400px' }}>
+        {/* Filtros */}
+        <div style={{ marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <Input
+            placeholder="Buscar producto..."
+            prefix={<SearchOutlined />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: '300px' }}
+            allowClear
+          />
+          
+          <Select
+            placeholder="Filtrar por categoría"
+            style={{ width: '200px' }}
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            allowClear
+          >
+            {categories.map(cat => (
+              <Select.Option key={cat} value={cat}>
+                {cat}
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
+
         {loading && <Loader loading={true} />}
         
-        {!loading && products.length === 0 && (
+        {!loading && filteredProducts.length === 0 && (
           <Empty description="No hay productos disponibles" />
         )}
 
-        {!loading && products.length > 0 && (
-          <Row gutter={[16, 16]}>
-            {products.map((product) => (
-              <Col key={product.id} xs={24} sm={12} lg={8}>
-                <ProductCard 
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                />
-              </Col>
-            ))}
-          </Row>
+        {!loading && filteredProducts.length > 0 && (
+          <>
+            <p style={{ color: '#666', marginBottom: '16px' }}>
+              Mostrando {filteredProducts.length} de {products.length} productos
+            </p>
+            <Row gutter={[16, 16]}>
+              {filteredProducts.map((product) => (
+                <Col key={product.id} xs={24} sm={12} lg={8}>
+                  <Card 
+                    hoverable
+                    cover={
+                      product.imagen ? (
+                        <img alt={product.nombre} src={product.imagen} style={{ height: '200px', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ height: '200px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          Sin imagen
+                        </div>
+                      )
+                    }
+                  >
+                    <h3>{product.nombre}</h3>
+                    <p style={{ color: '#999', fontSize: '12px', marginBottom: '8px' }}>
+                      Categoría: {product.categoria}
+                    </p>
+                    <p style={{ color: '#666', height: '60px', overflow: 'hidden', marginBottom: '16px' }}>
+                      {product.descripcion}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#2ecc71' }}>
+                        ${product.precio.toFixed(2)}
+                      </span>
+                      <Button 
+                        type="primary" 
+                        onClick={() => handleAddToCart(product)}
+                      >
+                        Añadir
+                      </Button>
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </>
         )}
       </div>
     </MainLayout>
